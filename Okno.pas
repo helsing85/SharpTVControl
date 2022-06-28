@@ -65,10 +65,11 @@ type
     procedure PodwojnyClick(Sender: TObject);
   private
     { Private declarations }
+    procedure InterpretujOdpowiedz(odpowiedz:string);
   public
-    procedure Zmiana_stanu;
-
     { Public declarations }
+    msg_str : AnsiString;
+    procedure Zmiana_stanu;
   end;
 
 var
@@ -208,46 +209,58 @@ end;
 
 procedure TForm1.ComPort1RxChar(Sender: TObject; Count: Integer);
 var
-odpowiedz : string;
+  odpowiedz : string;
 begin
 
  TimeOut.Enabled := false;
+
  ComPort1.ReadStr(odpowiedz, Count);
+// Form1.Memo1.Lines.Add(odpowiedz);
+ msg_str := msg_str + odpowiedz;
 
- if Rodzaj = 'RGLO' then
+ if odpowiedz[Count] = #$D  then
  begin
-   odpowiedz := Copy(odpowiedz,1,Length(odpowiedz)-1);
-   if odpowiedz = 'ERR' then exit;
-   TV.volume := StrToInt(odpowiedz);
-   ScrollBar1.Position := tv.volume;
+   Form1.Memo1.Lines.Add(msg_str);
+   InterpretujOdpowiedz(msg_str);
+   Form1.Czekaj.Enabled := true;
+ end;
+
+end;
+
+procedure TForm1.InterpretujOdpowiedz(odpowiedz:string);
+var
+  blad : boolean;
+begin
+ blad := Copy(odpowiedz,1,3) = 'ERR';
+
+ if not blad then
+ begin
+   if Rodzaj = 'RGLO' then
+   begin
+     odpowiedz := Copy(odpowiedz,1,Length(odpowiedz)-1);
+     TV.volume := StrToInt(odpowiedz);
+     ScrollBar1.Position := tv.volume;
    end;
 
- if (Rodzaj = 'WGLO') then
- begin
-   odpowiedz := Copy(odpowiedz,1,Length(odpowiedz)-1);
-
-   if odpowiedz = 'ERR' then exit;
+   if (Rodzaj = 'WGLO') then
+   begin
+     odpowiedz := Copy(odpowiedz,1,Length(odpowiedz)-1);
    end;
 
- if (Rodzaj = 'WKAN') then
- begin
-   odpowiedz := Copy(odpowiedz,1,Length(odpowiedz)-1);
-   Nr_kanalu.Caption := IntToStr(TV.kanal);
-   if odpowiedz = 'ERR' then exit;
+   if (Rodzaj = 'WKAN') then
+   begin
+     odpowiedz := Copy(odpowiedz,1,Length(odpowiedz)-1);
+     Nr_kanalu.Caption := IntToStr(TV.kanal);
    end;
 
-
- if Rodzaj = 'RKAN' then
- begin
-   odpowiedz := Copy(odpowiedz,1,Length(odpowiedz)-1);
-   if odpowiedz = 'ERR' then exit;
-   TV.kanal := StrToInt(odpowiedz);
-   Nr_kanalu.Caption := (odpowiedz);
+   if Rodzaj = 'RKAN' then
+   begin
+     odpowiedz := Copy(odpowiedz,1,Length(odpowiedz)-1);
+     TV.kanal := StrToInt(odpowiedz);
+     Nr_kanalu.Caption := (odpowiedz);
    end;
 
- Form1.Memo1.Lines.Add(odpowiedz);
- Form1.Czekaj.Enabled := true;
-
+ end;
 end;
 
 //*********************************************
@@ -256,7 +269,9 @@ procedure TForm1.But_OpenClick(Sender: TObject);
 begin
 
 try
-   ComPort1.Open;
+   if ComPort1.Connected
+     then ComPort1.Close
+     else ComPort1.Open;
    zmiana_stanu;
 except
    on EComPort do
@@ -282,8 +297,8 @@ end;
 
 procedure TForm1.CzekajTimer(Sender: TObject);
 begin
-Komunikacja := false;
-Czekaj.Enabled := false;
+  Komunikacja := false;
+  Czekaj.Enabled := false;
 end;
 
 //*********************************************
@@ -306,8 +321,9 @@ end;
 
 procedure TForm1.TimeOutTimer(Sender: TObject);
 begin
-Memo1.Lines.Add('TimeOut');
-TimeOut.Enabled := false;
+  Memo1.Lines.Add('TimeOut');
+  TimeOut.Enabled := false;
+  Form1.Czekaj.Enabled := true;
 //ComPort1.Close;
 //ComPort1.Open;
 end;
@@ -365,7 +381,7 @@ end;
 
 procedure TForm1.PodwojnyClick(Sender: TObject);
 begin
-Edit2.Text :='';
+  Edit2.Text :='';
 end;
 
 //*********************************************

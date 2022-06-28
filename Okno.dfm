@@ -27,10 +27,11 @@ object Form1: TForm1
     Align = alBottom
     TabOrder = 0
     object ComLed1: TComLed
-      Left = 528
-      Top = 8
+      Left = 464
+      Top = 16
       Width = 25
       Height = 25
+      ComPort = ComPort1
       LedSignal = lsConn
       Kind = lkBulb
     end
@@ -69,7 +70,6 @@ object Form1: TForm1
     ActivePage = TabSheet2
     Align = alLeft
     MultiLine = True
-    TabIndex = 1
     TabOrder = 1
     OnChange = ZakladkiChange
     object TabSheet1: TTabSheet
@@ -312,11 +312,9 @@ object Form1: TForm1
         Text = 'Status'
         Width = 50
       end>
-    SimplePanel = False
   end
   object ComPort1: TComPort
     BaudRate = br9600
-    Port = 'COM1'
     Parity.Bits = prNone
     StopBits = sbOneStopBit
     DataBits = dbEight
@@ -327,10 +325,13 @@ object Form1: TForm1
     FlowControl.ControlRTS = rtsDisable
     FlowControl.XonXoffOut = False
     FlowControl.XonXoffIn = False
+    StoredProps = [spBasic]
+    TriggersOnRxChar = True
     OnAfterOpen = ComPort1AfterOpen
     OnAfterClose = ComPort1AfterClose
     OnRxChar = ComPort1RxChar
-    Top = 280
+    Left = 416
+    Top = 416
   end
   object Czekaj: TTimer
     Enabled = False
@@ -347,6 +348,7 @@ object Form1: TForm1
   end
   object TimeOut: TTimer
     Enabled = False
+    Interval = 2000
     OnTimer = TimeOutTimer
     Left = 352
     Top = 416
